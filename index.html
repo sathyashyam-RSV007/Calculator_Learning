@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shyam Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  .calc {
+    width: 340px;
+    border-radius: 32px;
+    overflow: hidden;
+    background: #0b0b0b;
+    outline: 1px solid #1c1c1c;
+  }
+
+  .display {
+    background: #000;
+    padding: 32px 24px 18px;
+    min-height: 148px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .expr {
+    color: #2d2d2d;
+    font-size: 15px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    min-height: 22px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .number {
+    color: #f5f5f5;
+    font-size: 56px;
+    font-weight: 300;
+    letter-spacing: -2.5px;
+    line-height: 1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: font-size 0.1s ease;
+  }
+
+  .number.md { font-size: 42px; letter-spacing: -1.5px; }
+  .number.sm { font-size: 30px; letter-spacing: -1px; }
+
+  .sep {
+    height: 1px;
+    background: #161616;
+    margin: 0 1px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: #161616;
+    padding: 1px;
+  }
+
+  .btn {
+    background: #111;
+    border: none;
+    color: #d0d0d0;
+    font-family: inherit;
+    font-size: 22px;
+    font-weight: 400;
+    height: 78px;
+    cursor: pointer;
+    outline: none;
+    transition: background 0.08s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .btn:hover  { background: #1a1a1a; }
+  .btn:active { background: #252525; }
+
+  .btn.fn {
+    background: #181818;
+    color: #888;
+    font-size: 16px;
+  }
+  .btn.fn:hover  { background: #212121; }
+  .btn.fn:active { background: #2b2b2b; }
+
+  .btn.op {
+    background: #0c1e35;
+    color: #5baeff;
+  }
+  .btn.op:hover  { background: #112845; }
+  .btn.op:active { background: #163355; }
+
+  .btn.eq {
+    background: #1d4ed8;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 500;
+  }
+  .btn.eq:hover  { background: #2563eb; }
+  .btn.eq:active { background: #1a45c2; }
+
+  .btn.zero {
+    grid-column: span 2;
+    text-align: left;
+    padding-left: 28px;
+  }
+
+  .hint {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 12px;
+    color: #242424;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<div class="calc" role="main" aria-label="Calculator">
+  <div class="display" aria-live="polite">
+    <div class="expr"  id="expr"></div>
+    <div class="number" id="num">0</div>
+  </div>
+  <div class="sep"></div>
+  <div class="grid">
+    <button class="btn fn" data-a="clear"   aria-label="Clear">AC</button>
+    <button class="btn fn" data-a="sign"    aria-label="Toggle sign">+/−</button>
+    <button class="btn fn" data-a="pct"     aria-label="Percent">%</button>
+    <button class="btn op" data-a="op" data-v="÷" aria-label="Divide">÷</button>
+
+    <button class="btn" data-a="d" data-v="7">7</button>
+    <button class="btn" data-a="d" data-v="8">8</button>
+    <button class="btn" data-a="d" data-v="9">9</button>
+    <button class="btn op" data-a="op" data-v="×" aria-label="Multiply">×</button>
+
+    <button class="btn" data-a="d" data-v="4">4</button>
+    <button class="btn" data-a="d" data-v="5">5</button>
+    <button class="btn" data-a="d" data-v="6">6</button>
+    <button class="btn op" data-a="op" data-v="−" aria-label="Subtract">−</button>
+
+    <button class="btn" data-a="d" data-v="1">1</button>
+    <button class="btn" data-a="d" data-v="2">2</button>
+    <button class="btn" data-a="d" data-v="3">3</button>
+    <button class="btn op" data-a="op" data-v="+" aria-label="Add">+</button>
+
+    <button class="btn zero" data-a="d" data-v="0" aria-label="Zero">0</button>
+    <button class="btn"      data-a="dot"           aria-label="Decimal">.</button>
+    <button class="btn eq"   data-a="eq"            aria-label="Equals">=</button>
+  </div>
+</div>
+
+<p class="hint">keyboard supported · esc to clear · ⌫ backspace</p>
+
+<script>
+  const numEl  = document.getElementById('num');
+  const exprEl = document.getElementById('expr');
+
+  let cur  = '0';
+  let expr = '';
+  let done = false;
+
+  function setSize() {
+    const l = cur.length;
+    numEl.className = 'number' + (l > 12 ? ' sm' : l > 8 ? ' md' : '');
+  }
+
+  function render() {
+    numEl.textContent  = cur;
+    exprEl.textContent = expr;
+    setSize();
+  }
+
+  function compute(e) {
+    const js = e.replace(/÷/g,'/').replace(/×/g,'*').replace(/−/g,'-');
+    try {
+      const r = Function('"use strict";return(' + js + ')')();
+      if (!isFinite(r)) return 'Error';
+      return String(parseFloat(r.toPrecision(12)));
+    } catch { return 'Error'; }
+  }
+
+  function handle(a, v) {
+    if (a === 'd') {
+      if (done) { cur = v; expr = ''; done = false; }
+      else cur = cur === '0' ? v : cur + v;
+    } else if (a === 'dot') {
+      if (done) { cur = '0.'; expr = ''; done = false; }
+      else if (!cur.includes('.')) cur += '.';
+    } else if (a === 'op') {
+      done = false;
+      if (expr && /[÷×\+−]$/.test(expr)) {
+        expr = expr.slice(0, -1) + v;
+      } else {
+        expr += cur + v;
+        cur = '0';
+      }
+    } else if (a === 'eq') {
+      if (!expr) return;
+      const full = expr + cur;
+      const res  = compute(full);
+      exprEl.textContent = full + ' =';
+      expr = '';
+      cur  = res;
+      done = true;
+      numEl.textContent = cur;
+      setSize();
+      return;
+    } else if (a === 'clear') {
+      cur = '0'; expr = ''; done = false;
+    } else if (a === 'sign') {
+      if (cur !== '0' && cur !== 'Error')
+        cur = cur.startsWith('-') ? cur.slice(1) : '-' + cur;
+    } else if (a === 'pct') {
+      const n = parseFloat(cur);
+      if (!isNaN(n)) cur = String(parseFloat((n / 100).toPrecision(12)));
+    }
+    render();
+  }
+
+  document.querySelectorAll('.btn').forEach(b =>
+    b.addEventListener('click', () => handle(b.dataset.a, b.dataset.v))
+  );
+
+  const keyMap = {
+    '0':'d','1':'d','2':'d','3':'d','4':'d',
+    '5':'d','6':'d','7':'d','8':'d','9':'d',
+    '.':'dot', ',':'dot',
+    '+':'op', '-':'op', '*':'op', '/':'op',
+    'Enter':'eq', '=':'eq',
+    'Escape':'clear', 'Backspace':'back'
+  };
+  const opMap = { '+':'+', '-':'−', '*':'×', '/':'÷' };
+
+  document.addEventListener('keydown', e => {
+    const a = keyMap[e.key];
+    if (!a) return;
+    if (e.key === '/') e.preventDefault();
+    if (a === 'back') {
+      if (done) { cur = '0'; done = false; }
+      else cur = cur.length > 1 ? cur.slice(0,-1) : '0';
+      render();
+    } else {
+      handle(a, opMap[e.key] || e.key);
+    }
+  });
+</script>
+</body>
+</html>
